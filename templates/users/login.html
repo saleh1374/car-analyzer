@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <title>ورود</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; background: #f0f0f0; }
+        .login-box { max-width: 300px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; margin-top: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>🔐 ورود</h1>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="نام کاربری" required>
+            <input type="password" name="password" placeholder="رمز عبور" required>
+            <button type="submit">ورود</button>
+        </form>
+        <p>حساب ندارید؟ <a href="{% url 'register' %}">ثبت‌نام کنید</a></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}🔍 جستجوی محصولات دیوار{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="search-box">
+        <form method="post" class="search-form">
+            {% csrf_token %}
+            <input 
+                type="text" 
+                name="query" 
+                placeholder="جستجو برای محصول (مثلاً: پراید، موبایل، ...)" 
+                value="{{ search_query }}" 
+                required
+            >
+            <button type="submit">🔎 جستجو</button>
+        </form>
+        <div class="controls">
+            <a href="{% url 'logout' %}" class="logout-btn">🚪 خروج</a>
+        </div>
+    </div>
+
+    <!-- پیام وضعیت -->
+    {% if message %}
+        <div class="message 
+            {% if 'یافت' in message %}success
+            {% elif 'خطا' in message or 'Error' in message %}error
+            {% else %}warning{% endif %}">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    <!-- نمایش محصولات -->
+    {% if product_count > 0 %}
+        <div class="stats">
+            📊 تعداد محصولات: <strong>{{ product_count }}</strong>
+        </div>
+
+        <div class="products">
+            {% for product in products %}
+                <div class="product">
+                    <!-- تصویر -->
+                    {% if product.image %}
+                        <img 
+                            src="{{ product.image }}" 
+                            alt="{{ product.title }}" 
+                            class="product-image"
+                            onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22220%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22220%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2216%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'"
+                        >
+                    {% else %}
+                        <div class="product-image" style="display: flex; align-items: center; justify-content: center; color: #999; background: #f0f0f0;">
+                            📷 بدون عکس
+                        </div>
+                    {% endif %}
+
+                    <!-- اطلاعات -->
+                    <div class="product-info">
+                        <div class="product-title" title="{{ product.title }}">
+                            {{ product.title }}
+                        </div>
+
+                        <div class="product-details">
+                            {% if product.location %}
+                                <span>📍 {{ product.location }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-details">
+                            {% if product.seller %}
+                                <span>👤 {{ product.seller }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-price">
+                            {{ product.price }}
+                        </div>
+
+                        <a href="{{ product.link }}" target="_blank" class="product-link">
+                            🔗 مشاهده در دیوار
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-products">
+            🔎 محصولی یافت نشد. یک جستجو انجام دهید!
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .search-box {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+
+    .search-form input {
+        flex: 1;
+        min-width: 250px;
+        max-width: 400px;
+        padding: 15px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+    }
+
+    .search-form input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .search-form button {
+        padding: 15px 30px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .search-form button:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .controls {
+        text-align: center;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .logout-btn {
+        padding: 12px 24px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+    }
+
+    .message {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 16px;
+        animation: slideDown 0.3s ease;
+    }
+
+    .message.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .message.warning {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stats {
+        text-align: center;
+        color: white;
+        font-size: 18px;
+        margin-bottom: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+    }
+
+    .products {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .product {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .product:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: #f0f0f0;
+        display: block;
+    }
+
+    .product-info {
+        padding: 15px;
+    }
+
+    .product-title {
+        color: #333;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-height: 24px;
+    }
+
+    .product-details {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 8px;
+        display: flex;
+        gap: 5px;
+        align-items: center;
+    }
+
+    .product-price {
+        color: #28a745;
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .product-link {
+        display: inline-block;
+        color: white;
+        background: #007bff;
+        padding: 10px 15px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 12px;
+        width: 100%;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 2px solid #007bff;
+    }
+
+    .product-link:hover {
+        background: white;
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .no-products {
+        text-align: center;
+        padding: 80px 20px;
+        color: white;
+        font-size: 24px;
+    }
+
+    @media (max-width: 768px) {
+        .search-form {
+            flex-direction: column;
+        }
+
+        .search-form input {
+            max-width: 100%;
+        }
+
+        .products {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .product-title {
+            font-size: 14px;
+        }
+
+        .no-products {
+            font-size: 18px;
+            padding: 50px 20px;
+        }
+    }
+</style>
+{% endblock %}

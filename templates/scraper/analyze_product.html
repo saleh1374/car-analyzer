@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تحلیل و مقایسه آگهی - کارشناس خودرو{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">🚗 تحلیل و مقایسه آگهی - کارشناس خودرو</h1>
+        
+        <!-- فرم ورودی لینک -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📌 وارد کردن لینک آگهی دیوار</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-2">
+                        <div class="col-md-10">
+                            <input 
+                                type="url" 
+                                class="form-control form-control-lg" 
+                                name="product_link" 
+                                placeholder="https://divar.ir/v/..."
+                                required
+                            >
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                🚀 تحلیل
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- پیام وضعیت -->
+        {% if message %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        <!-- نتایج تحلیل -->
+        {% if product_obj and analysis %}
+        
+        <!-- ===== بخش اول: خلاصه تحلیل کارشناسی ===== -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-{% if analysis.score >= 85 %}success{% elif analysis.score >= 70 %}info{% elif analysis.score >= 50 %}warning{% else %}danger{% endif %} text-white">
+                <h5 class="mb-0">🏆 نتیجه تحلیل کارشناسی</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="score-box">
+                            <div class="score-circle bg-{% if analysis.score >= 85 %}success{% elif analysis.score >= 70 %}info{% elif analysis.score >= 50 %}warning{% else %}danger{% endif %} text-white">
+                                {{ analysis.score }}<span class="score-max">/100</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center">
+                        <div>
+                            <h3>{{ analysis.price_status }}</h3>
+                            <p class="lead mb-0">{{ analysis.final_recommendation }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- پیشنهاد نهایی -->
+                <div class="alert alert-{% if analysis.score >= 85 %}success{% elif analysis.score >= 70 %}info{% elif analysis.score >= 50 %}warning{% else %}danger{% endif %} mt-3 mb-0">
+                    <h5>💡 توصیه کارشناس:</h5>
+                    <p class="mb-0">{{ analysis.advice }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== بخش دوم: اطلاعات آگهی ===== -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">📋 مشخصات خودرو</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold">🚙 برند:</td>
+                                    <td>{{ product_obj.brand|default:"نامشخص" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">🚗 تیپ:</td>
+                                    <td>{{ product_obj.body_type|default:"نامشخص" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">📅 سال ساخت:</td>
+                                    <td><strong>{{ product_obj.year|default:"نامشخص" }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">🎨 رنگ:</td>
+                                    <td>{{ product_obj.color|default:"نامشخص" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">⛽ سوخت:</td>
+                                    <td>{{ product_obj.fuel_type|default:"نامشخص" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">⚙️ گیربکس:</td>
+                                    <td>{{ product_obj.gearbox|default:"نامشخص" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">🛣️ کارکرد:</td>
+                                    <td><strong>{{ product_obj.mileage|default:"نامشخص" }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">💰 قیمت:</td>
+                                    <td><span class="badge bg-danger fs-6">{{ product_obj.price }}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== بخش سوم: وضعیت فیزیکی ===== -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">🔧 وضعیت فیزیکی</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold">⚙️ موتور:</td>
+                                    <td>
+                                        <small>{{ product_obj.engine_condition|default:"نامشخص" }}</small>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">🔩 شاسی:</td>
+                                    <td>
+                                        <small>{{ product_obj.chassis_condition|default:"نامشخص" }}</small>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">🎨 بدنه:</td>
+                                    <td>
+                                        <small>{{ product_obj.body_condition|default:"نامشخص" }}</small>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">🛡️ بیمه:</td>
+                                    <td>
+                                        <small>{{ product_obj.insurance|default:"نامشخص" }}</small>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- خلاصه وضعیت -->
+                        <div class="mt-3">
+                            <h6>خلاصه وضعیت:</h6>
+                            {% for detail in analysis.condition_analysis.details %}
+                            <span class="badge bg-light text-dark mb-2 d-inline-block">{{ detail }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== بخش چهارم: تحلیل قیمت ===== -->
+        {% if analysis.price_analysis %}
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">💰 تحلیل قیمت</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="price-stat">
+                            <h6>قیمت آگهی</h6>
+                            <p class="h5 text-danger">{{ analysis.price_analysis.new_price|default:"?" }}</p>
+                            <small class="text-muted">تومان</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="price-stat">
+                            <h6>میانگین بازار</h6>
+                            <p class="h5 text-primary">{{ analysis.price_analysis.avg_price|default:"?" }}</p>
+                            <small class="text-muted">تومان</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="price-stat">
+                            <h6>کمترین قیمت</h6>
+                            <p class="h5 text-success">{{ analysis.price_analysis.min_price|default:"?" }}</p>
+                            <small class="text-muted">تومان</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="price-stat">
+                            <h6>بیشترین قیمت</h6>
+                            <p class="h5 text-warning">{{ analysis.price_analysis.max_price|default:"?" }}</p>
+                            <small class="text-muted">تومان</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-3">
+                
+                <div class="alert alert-{% if analysis.price_analysis.percent_diff|floatformat:0 < "-15" %}success{% elif analysis.price_analysis.percent_diff|floatformat:0 > "15" %}danger{% else %}warning{% endif %}">
+                    <strong>نتیجه مقایسه قیمت:</strong>
+                    {% if analysis.price_analysis.percent_diff|floatformat:0 < "-15" %}
+                        قیمت این خودرو <strong>{{ analysis.price_analysis.percent_diff|floatformat:0|add:"0"}}%</strong> کمتر از میانگین است! ✅
+                    {% elif analysis.price_analysis.percent_diff|floatformat:0 > "15" %}
+                        قیمت این خودرو <strong>{{ analysis.price_analysis.percent_diff|floatformat:0|add:"0"}}%</strong> بیشتر از میانگین است! ❌
+                    {% else %}
+                        قیمت این خودرو تقریباً برابر میانگین است ({% if analysis.price_analysis.percent_diff|floatformat:0 > "0" %}+{% endif %}{{ analysis.price_analysis.percent_diff|floatformat:0|add:"0"}}%) ⚠️
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ===== بخش پنجم: تحلیل کارکرد ===== -->
+        {% if analysis.mileage_analysis %}
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">🛣️ تحلیل کارکرد</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <h6>کارکرد آگهی</h6>
+                        <p class="h5 text-primary">{{ analysis.mileage_analysis.new_mileage|default:"?" }}</p>
+                        <small class="text-muted">کیلومتر</small>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>میانگین کارکرد</h6>
+                        <p class="h5 text-secondary">{{ analysis.mileage_analysis.avg_mileage|default:"?" }}</p>
+                        <small class="text-muted">کیلومتر</small>
+                    </div>
+                </div>
+                
+                <hr class="my-3">
+                
+                <div class="alert alert-info">
+                    <strong>نتیجه:</strong> {{ analysis.mileage_analysis.advice }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ===== بخش ششم: اطلاعات بازار ===== -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">📊 اطلاعات بازار</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for detail in analysis.details %}
+                    <div class="list-group-item list-group-item-light">
+                        {{ detail }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== بخش هفتم: خودروهای مشابه ===== -->
+        {% if similar_products %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">🔗 خودروهای مشابه در دیتابیس ({{ similar_products.count }})</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if similar_products.count > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>عنوان</th>
+                                <th>قیمت</th>
+                                <th>سال</th>
+                                <th>کارکرد</th>
+                                <th>رنگ</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in similar_products %}
+                            <tr>
+                                <td>
+                                    <small><strong>{{ product.title|truncatewords:5 }}</strong></small>
+                                </td>
+                                <td>
+                                    <small>{{ product.price }}</small>
+                                </td>
+                                <td>
+                                    <small>{{ product.year|default:"-" }}</small>
+                                </td>
+                                <td>
+                                    <small>{{ product.mileage|default:"-" }}</small>
+                                </td>
+                                <td>
+                                    <small>{{ product.color|default:"-" }}</small>
+                                </td>
+                                <td>
+                                    <a href="{{ product.link }}" target="_blank" class="btn btn-sm btn-primary">
+                                        🔗 مشاهده
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center p-3">خودروی مشابهی در دیتابیس یافت نشد</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- صفحه خوش‌آمدگویی -->
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">❓ راهنمای استفاده</h5>
+                    </div>
+                    <div class="card-body">
+                        <ol class="lead">
+                            <li class="mb-3">
+                                <strong>لینک آگهی دیوار رو</strong> در فیلد بالا کپی کنید
+                                <br><small class="text-muted">مثال: https://divar.ir/v/xxxxxx</small>
+                            </li>
+                            <li class="mb-3">
+                                <strong>دکمه 🚀 تحلیل</strong> را کلیک کنید
+                            </li>
+                            <li class="mb-3">
+                                <strong>سیستم</strong> این کارها انجام می‌دهد:
+                                <ul>
+                                    <li>✅ اطلاعات آگهی را استخراج می‌کند</li>
+                                    <li>✅ اطلاعات را در دیتابیس ذخیره می‌کند</li>
+                                    <li>✅ خودروهای مشابه را از دیتابیس پیدا می‌کند</li>
+                                    <li>✅ تحلیل کارشناسی انجام می‌دهد</li>
+                                    <li>✅ امتیاز و پیشنهاد نهایی می‌دهد</li>
+                                </ul>
+                            </li>
+                            <li class="mb-3">
+                                <strong>نتیجه تحلیل:</strong>
+                                <ul>
+                                    <li>🟢 <strong>خیلی عالی</strong> (90+) - خرید فوق‌العاده</li>
+                                    <li>🟢 <strong>خوب</strong> (75+) - خرید توصیه می‌شود</li>
+                                    <li>🟡 <strong>معقول</strong> (60+) - با دقت بررسی کنید</li>
+                                    <li>🟡 <strong>ریسکی</strong> (45+) - نیاز به مذاکره</li>
+                                    <li>🔴 <strong>نامناسب</strong> (-45) - خرید نکنید</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">🎯 معیارهای تحلیل</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>مقایسه قیمت:</h6>
+                                <ul class="small">
+                                    <li>قیمت < 85% میانگین = ✅ فرصت خوب</li>
+                                    <li>قیمت > 115% میانگین = ❌ گرانه</li>
+                                    <li>قیمت = 85-115% = ⚠️ معقول</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>وضعیت فیزیکی:</h6>
+                                <ul class="small">
+                                    <li>موتور سالم = +8</li>
+                                    <li>شاسی سالم = +8</li>
+                                    <li>بدنه دوررنگ = -8</li>
+                                    <li>سایر شرایط خوب = +3</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .score-box {
+        margin: 20px 0;
+    }
+
+    .score-circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: bold;
+        margin: 0 auto;
+    }
+
+    .score-max {
+        font-size: 1.5rem;
+        margin-left: 10px;
+    }
+
+    .price-stat {
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #f9fafb;
+    }
+
+    .price-stat h6 {
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f1f3f5;
+    }
+
+    .badge {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+
+    .list-group-item {
+        border-left: 4px solid #2563eb;
+    }
+
+    @media (max-width: 768px) {
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            font-size: 2rem;
+        }
+
+        .score-max {
+            font-size: 1rem;
+        }
+
+        .price-stat {
+            margin-bottom: 15px;
+        }
+    }
+</style>
+{% endblock %}
